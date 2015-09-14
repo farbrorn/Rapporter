@@ -118,7 +118,21 @@
 		if (lagernrStr!=null) {
 			try { lagernr = new Integer(lagernrStr); } catch (Exception e) {}
 		}
-		
+
+                
+                //Filter för att sortera ut priser som är gamla och över ett visst belopp
+		Integer prisdagarfilter = null;
+		String prisdagarfilterStr = request.getParameter("prisdagarfilter");
+		if (prisdagarfilterStr!=null) {
+			try { prisdagarfilter = new Integer(prisdagarfilterStr); } catch (Exception e) {}
+		}
+		Integer prisdagarbeloppfilter = null;
+		String prisdagarbeloppfilterStr = request.getParameter("prisdagarbeloppfilter");
+		if (prisdagarbeloppfilterStr!=null) {
+			try { prisdagarbeloppfilter = new Integer(prisdagarbeloppfilterStr); } catch (Exception e) {}
+		}
+                
+                
 		String rubrik = request.getParameter("rubrik");
 		String lev = request.getParameter("lev");
 		
@@ -177,7 +191,10 @@
 		if (colBreakTreeLevelStr!=null) {
 			try { colBreakTreeLevel = new Integer(colBreakTreeLevelStr); } catch (Exception e) {}
 		}
-		
+
+		String footerHTML= request.getParameter("fothtml");
+
+                
 		
 %>			
 
@@ -194,7 +211,7 @@
 		int sidWidth = 650;
 		int colWidth = 320;
 		int sidHeaderHeight = 24;
-		int sidFooterHeight = 20;
+		int sidFooterHeight = 40;
 		int colHeight = sidHeight-sidHeaderHeight-sidFooterHeight-16;
 		
 %>		
@@ -253,6 +270,9 @@
 			.sida-header-logo {
 				
 			}
+                        .sida-footer-text {
+                            text-align: center;
+                        }
 			.sida-header-logo img {
 				max-width: 100px;
 				max-heigt: 20px;
@@ -433,12 +453,12 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 
 					
 			if (printedKlasar > 0 && grupp.getTreeLevel() >= colBreakTreeLevel) {
-				out.print(forceColBreak(printHojd, maxPrintHojd, aktivCol, gruppHojd, sidraknare, logoUrl));
+				out.print(forceColBreak(printHojd, maxPrintHojd, aktivCol, gruppHojd, sidraknare, logoUrl, footerHTML));
 			}
 
 					
 			if (grupp.getTreeLevel() != 0) {  //Skriv inte ut info för Root-gruppen .- det 'r på förstasidan om det inte är 0%>
-				<% out.print(checkBreak(printHojd, maxPrintHojd, aktivCol, gruppHojd, sidraknare, logoUrl, printHojd.get() > colHeight-120));	%>
+				<% out.print(checkBreak(printHojd, maxPrintHojd, aktivCol, gruppHojd, sidraknare, logoUrl, printHojd.get() > colHeight-120, footerHTML));	%>
 				<div class="t_row kat-grupp-l<%= level %>" id="pg-<%= cntr.next() %>">
 					<h2><%= Util.toHtml(Util.toStr(grupp.getRubrik())) + (printID ? (" G:" + grupp.getGrpId()) : "") %></h2>
 				</div>
@@ -450,7 +470,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 				<% printedKlasar++; %>		
 				<% int hojd = new Double(huvudHojd + rowHeight * Math.ceil(Util.toStr(klase.getText()).length()/50)).intValue();
 					
-						out.print(checkBreak(printHojd, maxPrintHojd, aktivCol, hojd, sidraknare, logoUrl));	%>
+						out.print(checkBreak(printHojd, maxPrintHojd, aktivCol, hojd, sidraknare, logoUrl, footerHTML));	%>
 					<div class="klase-pic"><% if(klase.getArtiklar().size() > 0) { %><img onerror="this.style.display='none';" src="http://www.saljex.se/p/s100/<%= klase.getArtiklar().get(0).getBildArtNr() %>.png"><% } %> </div>
 					<h2 class="t_row"><%= Util.toHtml(klase.getRubrik()) + (printID ? (" K:" + klase.getId()) : "") %></h2>
 
@@ -470,7 +490,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 					</div>
 						
 					<% for (KatalogArtikel artikel : klase.getArtiklar()) { %>
-						<% out.print(checkBreak(printHojd, maxPrintHojd, aktivCol, radHojd, sidraknare, logoUrl));	%>
+						<% out.print(checkBreak(printHojd, maxPrintHojd, aktivCol, radHojd, sidraknare, logoUrl, footerHTML));	%>
 						<div class="t_row h12">
 							<div class="s s_artnr left"><%= Util.toHtml(artikel.getArtnr()) %></div>
 							<div class="s s_typ left"><%= Util.toHtml(artikel.getKatalogtext()) %></div>
@@ -488,8 +508,11 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 										pris = artikel.getPris() * minSaljpack;
 										if (pris >= 100) pris = java.lang.Math.ceil(pris);
 									}
-									if (pris > 0.0) out.print(Util.getFormatPris(pris * ("NTO".equals(artikel.getRabkod()) ? 0.0 : 1-rabatt)));														
-									
+                                                                        if (artikel.isPrisOlder(prisdagarfilter) && (prisdagarbeloppfilter==null || prisdagarbeloppfilter < pris)) {
+                                                                            
+                                                                        } else {
+                                                                            if (pris > 0.0 ) out.print(Util.getFormatPris(pris * ("NTO".equals(artikel.getRabkod()) ? 0.0 : 1-rabatt)));														
+                                                                        }
 								%>
 							</div>
 							<%
@@ -535,14 +558,14 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 					
 					<% } //Artiklar%>
 					<%	if (printHojd.get() < maxPrintHojd-radHojd ) { %>
-						<%= checkBreak(printHojd, maxPrintHojd, aktivCol, huvudHojd, sidraknare,logoUrl)	%>
+						<%= checkBreak(printHojd, maxPrintHojd, aktivCol, huvudHojd, sidraknare,logoUrl, footerHTML)	%>
 						<div class="t_row h12"></div>
 					<% } %>
 				<% } //Klasar %>
 				
 				<% if(klaseInnehallerDagsPris) klaseNotering = klaseNotering + " *-Pris på förfrågan/Dagspris"; %>
 				<% if (!klaseNotering.isEmpty()) { %> 
-					<%= checkBreak(printHojd, maxPrintHojd, aktivCol, huvudHojd, sidraknare, logoUrl) %>
+					<%= checkBreak(printHojd, maxPrintHojd, aktivCol, huvudHojd, sidraknare, logoUrl, footerHTML) %>
 					<div class="t_row h12 fint"><%= Util.toHtml(klaseNotering) %></div>
 					<% klaseNotering = ""; %>
 				<% } %>
@@ -551,7 +574,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 			<% } //Grupper %>
 		</div>
 		<% sidraknare.add(1); %>
-		<%= getHTMLSidaFooter(sidraknare, logoUrl) %>
+		<%= getHTMLSidaFooter(sidraknare, logoUrl, footerHTML) %>
 	</div>	
 </div>
 	<%
@@ -562,7 +585,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 		<div class="sida">
 			<%= getHTMLSidaHeader(sidraknare, logoUrl) %>
 			<% sidraknare.add(1); %>
-			<%= getHTMLSidaFooter(sidraknare, logoUrl) %>
+			<%= getHTMLSidaFooter(sidraknare, logoUrl,footerHTML) %>
 		</div>
 	<%	} %>
 
@@ -577,7 +600,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 			<p>Betalning skall vara oss tillhanda inom angiven kredittid. Påminnelseavgift utgår med fn 45:- per st. Vid ev inkasso tillkommer lagstadgade avgifter.
 				Efter fakturans förfallodag debiteras ränta (fn. 18%) samt räntefaktureringsavgift.
 			</p>
-			<p>Returer krediteras med ett avdrag på 20% samt ev. kringkostnader. Returer skall ske i originalförpackning och varan skall vara i originalskick. Köparen bekostar återtransporten. 
+			<p>Returer krediteras med ett avdrag på 30% samt ev. kringkostnader. Returer skall ske i originalförpackning och varan skall vara i originalskick. Köparen bekostar återtransporten. 
 			Ej lagerförda, specialbeställda, tillverkade eller kapade varor kan ej returneras.</p>
 			<p>Garanti gäller enligt våra leverantörers villkor för respektive land. Säljex åtar sig inget garantiansvar utöver detta.</p>
 			<p>Vi hjälper gärna till med tips och förslag på produkter. Slutgiltigt materielval och  dimensionering ansvarar dock alltid kunden för, och Säljex kan inte hållas 
@@ -588,9 +611,9 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 			<div class="kat-backfot">
 				<table class="kontaktinfo">
 					<tr><td class="kat-frontfot-hrubrik" colspan="3">Kontaktuppgifter</td></tr>
-					<%
-					String tNamn=null;
-					String tTel=null;
+                                    <%
+					String tNamn=null; 
+                                        String tTel=null;
 					String tEpost=null;
 					for (int cn = 0; cn < frontKontaktNamnArr.length; cn++) {
 						tNamn = ""; tTel=""; tEpost="";
@@ -598,15 +621,15 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 						try {tTel = frontKontaktTelArr[cn];} catch (Exception e) {}
 						try {tEpost = frontKontaktEPostArr[cn];} catch (Exception e) {}
 
-						%> 
+                                    %> 
 						<tr>
 							<td class="kat-frontfot-rubrik"> <%= SXUtil.toHtml(tNamn) %></td>
 							<td> <%= SXUtil.toHtml(tTel) %></td>
 							<td> <%= SXUtil.toHtml(tEpost) %></td>
 						</tr>
-						<%
-					}
-					%>
+                                	<%
+                                           }
+                                        %>
 
 				</table>
 			<div class="kat-backfot-www"><%= Util.toHtml(frontWWW) %></div>
@@ -618,14 +641,14 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 </html>
 
 <%!
-	public String forceColBreak(iw printHojd, int maxPrintHojd, iw aktivCol, int hojd, iw sidraknare, String logoUrl) {
-		return checkBreak(printHojd, maxPrintHojd, aktivCol, hojd, sidraknare, logoUrl, true);
+	public String forceColBreak(iw printHojd, int maxPrintHojd, iw aktivCol, int hojd, iw sidraknare, String logoUrl, String footerHTML) {
+		return checkBreak(printHojd, maxPrintHojd, aktivCol, hojd, sidraknare, logoUrl, true, footerHTML);
 	}
-	public String checkBreak(iw printHojd, int maxPrintHojd, iw aktivCol, int hojd, iw sidraknare, String logoUrl) {
-		return checkBreak(printHojd, maxPrintHojd, aktivCol, hojd, sidraknare, logoUrl, false);
+	public String checkBreak(iw printHojd, int maxPrintHojd, iw aktivCol, int hojd, iw sidraknare, String logoUrl, String footerHTML) {
+		return checkBreak(printHojd, maxPrintHojd, aktivCol, hojd, sidraknare, logoUrl, false,footerHTML);
 	}
 	
-	public String checkBreak(iw printHojd, int maxPrintHojd, iw aktivCol, int hojd, iw sidraknare, String logoUrl, boolean forceColBreak) {
+	public String checkBreak(iw printHojd, int maxPrintHojd, iw aktivCol, int hojd, iw sidraknare, String logoUrl, boolean forceColBreak, String footerHTML) {
 		
 		String ret="";
 					
@@ -634,7 +657,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 						if (aktivCol.add(1) > 2) { //Sidbrytnuing
 							if (sidraknare!=null) sidraknare.add(1);
 							aktivCol.set(1);
-							ret=ret + getHTMLSidaFooter(sidraknare, logoUrl);
+							ret=ret + getHTMLSidaFooter(sidraknare, logoUrl, footerHTML);
 							ret = ret+"</div>";
 							ret = ret + "<div class=\"sida\">";
 							ret = ret+ getHTMLSidaHeader(sidraknare, logoUrl);
@@ -656,10 +679,17 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 		return ret;
 	}
 	
-	public String getHTMLSidaFooter(iw sidraknare, String logoUrl) {
+	public String getHTMLSidaFooter(iw sidraknare, String logoUrl, String footerHTML) {
 		String ret;
 		ret = "<div class=\"sida-footer\">";
-			ret = ret+"<div class=\"sidnummer " + (sidraknare.get()%2 == 0 ? "left" : "right") + "\">" + sidraknare.get() + "</div>";
+                
+                if (!SXUtil.isEmpty(footerHTML)) {
+                    ret = ret +  "<div class=\"sida-footer-text\">" + SXUtil.toHtml(footerHTML) + "</div>";
+                    
+                    
+                }
+                
+        	ret = ret+"<div class=\"sidnummer " + (sidraknare.get()%2 == 0 ? "left" : "right") + "\">" + sidraknare.get() + "</div>";
 		ret = ret+"</div>";
 		
 		return ret;

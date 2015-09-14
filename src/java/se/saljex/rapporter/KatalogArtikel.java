@@ -5,6 +5,7 @@
 package se.saljex.rapporter;
 
 import java.sql.Date;
+import se.saljex.sxlibrary.SXUtil;
 
 /**
  *
@@ -34,6 +35,8 @@ public class KatalogArtikel {
 		private String enr;
 		private Integer prisgiltighetstid;
 		private Double kundNettoPris;
+                private java.sql.Date inpdat;
+                private java.sql.Date prisdatum;
 
 	public Double getKundNettoPris() {
 		return kundNettoPris;
@@ -221,5 +224,35 @@ public class KatalogArtikel {
 		this.rabkod = rabkod;
 	}
 
-		
+    public Date getInpdat() {
+        return inpdat;
+    }
+
+    public void setInpdat(Date inpdat) {
+        this.inpdat = inpdat;
+    }
+
+    public Date getPrisdatum() {
+        return prisdatum;
+    }
+
+    public void setPrisdatum(Date prisdatum) {
+        this.prisdatum = prisdatum;
+    }
+
+    public java.sql.Date getOldestPrisdatum() {
+        if (prisdatum==null) return inpdat;
+        if (inpdat==null) return prisdatum;
+        if (prisdatum.after(inpdat)) return inpdat; else return prisdatum;
+    }
+
+    public boolean isPrisOlder(Integer dagar) {
+        if (dagar==null) return false;
+        java.sql.Date dat = getOldestPrisdatum();
+        if (dat==null) return true;
+        java.util.Date ndat = new java.util.Date();
+        java.util.Date cdat = SXUtil.addDate(ndat, dagar*-1);
+        
+        return dat.before(cdat);
+    }
 }
