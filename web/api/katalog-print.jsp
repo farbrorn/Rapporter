@@ -194,6 +194,8 @@
 
 		String footerHTML= request.getParameter("fothtml");
 
+                String datumString = null;
+                datumString = request.getParameter("datum");
                 
 		
 %>			
@@ -346,8 +348,15 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 	left: 60px;
 }
 
+.t_rsk {
+    font-size: 6px;
+}
+
 .h12 {
 	height: 12px;
+}
+.h8 {
+	height: 8px;
 }
 
 .h22 {
@@ -404,7 +413,8 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 				<h2><% out.print(Util.toHtml(rubrik)); %> </h2>
 			</td>
 			<td>
-				Datum: <%= Util.toHtml(katalog.getDatumString()) %>
+                                <% if (datumString==null) datumString = "Datum: " + katalog.getDatumString(); %>
+				<%= Util.toHtml(datumString) %>
 				<%= valuta != null ? "<br>Valuta " + valuta : "" %>
 				<%= rabatt != 0 ? "<br><b>Lista NT" + SXUtil.getFormatNumber( rabatt*100*2,0) + "</b>" : "" %>
 				<%= avtalsprisKundnr != null ? "<br><b>Kundavtal: " + SXUtil.toHtml(avtalsprisKundnr) + "</b>" : "" %>
@@ -433,6 +443,8 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 	int huvudHojd = 24;
 	int gruppHojd = 15;
 	int radHojd = 12;
+	int radHojd8 = 8;
+        
 	iw printHojd = new iw();
 	iw aktivCol = new iw(1);
 	iw sidraknare = new iw(0);
@@ -468,7 +480,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 			
 				klaseInnehallerDagsPris = false; %>
 				<% printedKlasar++; %>		
-				<% int hojd = new Double(huvudHojd + rowHeight * Math.ceil(Util.toStr(klase.getText()).length()/50)).intValue();
+				<% int hojd = new Double(huvudHojd + rowHeight * Math.ceil(Util.toStr(klase.getText()).length()/50)*1.1).intValue();
 					
 						out.print(checkBreak(printHojd, maxPrintHojd, aktivCol, hojd, sidraknare, logoUrl, footerHTML));	%>
 					<div class="klase-pic"><% if(klase.getArtiklar().size() > 0) { %><img onerror="this.style.display='none';" src="http://www.saljex.se/p/s100/<%= klase.getArtiklar().get(0).getBildArtNr() %>.png"><% } %> </div>
@@ -511,7 +523,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
                                                                         if (artikel.isPrisOlder(prisdagarfilter) && (prisdagarbeloppfilter==null || prisdagarbeloppfilter < pris)) {
                                                                             
                                                                         } else {
-                                                                            if (pris > 0.0 ) out.print(Util.getFormatPris(pris * ("NTO".equals(artikel.getRabkod()) ? 0.0 : 1-rabatt)));														
+                                                                            if (pris > 0.0 ) out.print(Util.getFormatPris(pris * ("NTO".equals(artikel.getRabkod()) ? 1.0 : 1-rabatt)));														
                                                                         }
 								%>
 							</div>
@@ -555,6 +567,17 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 							<div class="s s_not"><%= Util.toHtml(fp) %></div>
 						</div>
 
+                                                
+                                                <% if(printRsk && !SXUtil.isEmpty(artikel.getRsk())) { %>
+                                                    <% out.print(checkBreak(printHojd, maxPrintHojd, aktivCol, radHojd8, sidraknare, logoUrl, footerHTML));	%>
+                                                    <div class="t_row t_rsk h8">
+                                                        <%= SXUtil.toHtml(artikel.getRsk()) %>
+                                                    </div>
+                                                <% } %>
+                                                
+                                                
+                                                
+                                                
 					
 					<% } //Artiklar%>
 					<%	if (printHojd.get() < maxPrintHojd-radHojd ) { %>
