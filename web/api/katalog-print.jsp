@@ -370,6 +370,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 }
 
 .s_artnr						{ width: 50px; padding-right: 2px; }
+.s_artnr_small                  { font-size: 80%; }
 .s_typ						{ width: 120px; }
 .s_pris						{ width: 40px;  }
 .s_grupp						{ width: 14px;	font-size: 6px;  }
@@ -504,7 +505,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 					<% for (KatalogArtikel artikel : klase.getArtiklar()) { %>
 						<% out.print(checkBreak(printHojd, maxPrintHojd, aktivCol, radHojd, sidraknare, logoUrl, footerHTML));	%>
 						<div class="t_row h12">
-							<div class="s s_artnr left"><%= Util.toHtml(artikel.getArtnr()) %></div>
+                                                    <div class="s s_artnr <%= Util.toStr(artikel.getArtnr()).length() >= 8 ? "s_artnr_small" : ""  %> left"><%= Util.toHtml(artikel.getArtnr()) %></div>
 							<div class="s s_typ left"><%= Util.toHtml(artikel.getKatalogtext()) %></div>
 							<div class="s s_pris right">
 								<% prisetArDagspris = false;
