@@ -22,7 +22,7 @@
 <%
 
 	Double roligKostnadProcent = 0.015;
-	Double fastKostnad = 11500+1000+34000+0.0;
+	Double fastKostnad = 0.0;
 	Double lagerProcent = 0.07;
 	Double tbProcent = 0.15;
 	Integer lagernr = 1;

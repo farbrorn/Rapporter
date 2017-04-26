@@ -209,7 +209,7 @@
 		
 
 		int rowHeight = 12;
-		int sidHeight = 970;
+		int sidHeight = 1020;
 		int sidWidth = 650;
 		int colWidth = 320;
 		int sidHeaderHeight = 24;

@@ -27,21 +27,23 @@
 
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
-		Date frDatum;
+		Date frDatum = null;
 		try { //datum = new Date(request.getParameter("datum")); 
 			frDatum = dateFormatter.parse(request.getParameter("frdat"));
-		} catch (Exception e) { throw new SxInfoException("Felaktigt datum i parameter frdatum");} 
-		Date tiDatum;
+		} catch (Exception e) { } 
+		Date tiDatum = null;
 		try { //datum = new Date(request.getParameter("datum")); 
 			tiDatum = dateFormatter.parse(request.getParameter("tidat"));
-		} catch (Exception e) { throw new SxInfoException("Felaktigt datum i parameter tidatum");} 
+		} catch (Exception e) { } 
 		
                 String kundnr = request.getParameter("kundnr");
                 String sortorder = request.getParameter("sortorder");
                 
+                if (tiDatum == null) tiDatum = new Date();
+                if (frDatum == null) frDatum = SXUtil.addDate(tiDatum, -30);
                 
 //		if (!user.isBehorighet("Ekonomi")) throw new SxInfoException("Ingen behörighet");
-		
+		boolean odd = true;
 %>			
 
 <%
@@ -79,6 +81,22 @@
 		<title>Försäljningsrapport</title>
 	
 <style type="text/css">
+	td, th { 
+		padding: 2px 4px 2px 4px; 
+		text-align: left;
+	}
+	th { 
+		border-bottom: 1px solid black; 
+		font-size: 60%;
+	}
+	
+	.odd {}
+
+	
+	.even {
+		background-color: #eeeeee;
+	}
+        
 	.right { text-align: right;}
 </style>	
 	</head>
@@ -90,11 +108,11 @@
                         <tr><td>Från datum</td><td><input name="frdat" value="<%= SXUtil.getFormatDate(frDatum) %>"></td></tr>
                         <tr><td>Till datum</td><td><input name="tidat" value="<%= SXUtil.getFormatDate(tiDatum) %>"></td></tr>
                         <tr><td>Sortera</td><td>
-                            <option name="sortorder">
-                                <select value="marke" <%= "marke".equals(sortorder) ? " selected" : "" %>>Ordermärke</select>
-                                <select value="fakturanr" <%= "fakturanr".equals(sortorder) ? " selected" : "" %>>Fakturanummer</select>
-                                <select value="artnr" <%= "artnr".equals(sortorder) ? " selected" : "" %>>Artikelnummer</select>
-                            </option> 
+                            <select name="sortorder">
+                                <option value="marke" <%= "marke".equals(sortorder) ? " selected" : "" %>>Ordermärke</option>
+                                <option value="fakturanr" <%= "fakturanr".equals(sortorder) ? " selected" : "" %>>Fakturanummer</option>
+                                <option value="artnr" <%= "artnr".equals(sortorder) ? " selected" : "" %>>Artikelnummer</option>
+                            </select> 
                         </td>           </tr>
                     </table>
                             <div>
@@ -113,7 +131,8 @@
 		<table>
                     <tr><th>Faktura</th><th>Datum</th><th>Märke</th><th>Artikelnr</th><th>Benämning</th><th>Antal</th><th>Pris</th><th>% </th><th>Summa</th></tr>
 		<%  while(rs.next()) { %>
-			<tr>
+                    <% odd=!odd; %>
+			<tr class="<%= odd ? "odd" : "even" %>">
 				<td><%= rs.getInt(1)  %></td>
                                 <td><%= SXUtil.getFormatDate(rs.getDate(2))  %></td>
 				<td><%= SXUtil.toHtml(rs.getString(3)) %></td>
@@ -121,10 +140,11 @@
 				<td><%= SXUtil.toHtml(rs.getString(5)) %></td>
 				<td class="right"><%= SXUtil.getFormatNumber(rs.getDouble(6),2) %></td>
 				<td class="right"><%= SXUtil.getFormatNumber(rs.getDouble(7),2) %></td>
-				<td class="right"><%= SXUtil.getFormatNumber(rs.getDouble(8),2) %></td>
+				<td class="right"><%= SXUtil.getFormatNumber(rs.getDouble(8),0) %></td>
+				<td class="right"><%= SXUtil.getFormatNumber(rs.getDouble(9),2) %></td>
                                 
 			</tr>
-			<% tot += rs.getDouble(8); %>
+			<% tot += rs.getDouble(9); %>
 		<% } %>
 		</table>
 		<div>

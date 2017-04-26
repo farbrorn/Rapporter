@@ -4,6 +4,7 @@
     Author     : Ulf
 --%>
 
+<%@page import="se.saljex.sxlibrary.exceptions.SxInfoException"%>
 <%@page import="java.util.Calendar"%>
 <%@page import="se.saljex.sxlibrary.SXUtil"%>
 <%@page import="java.net.URLEncoder"%>
@@ -28,6 +29,8 @@
 		try { frAr = new Integer(request.getParameter("frar")); } catch (Exception e) { } ;
 		Calendar cal = Calendar.getInstance();
 		if (frAr==null) frAr = cal.get(Calendar.YEAR);
+		if (!user.isBehorighet("L00-Ekonomi")) throw new SxInfoException("Ingen behörighet");
+                
 %>			
 
 <%
