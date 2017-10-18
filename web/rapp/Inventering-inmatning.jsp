@@ -28,9 +28,10 @@
 		SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
                 
                 Integer inventId = null;
+                String ac = null;
 		
 		try { inventId = Integer.parseInt(request.getParameter("id")); } catch (Exception e) { }
-                
+                ac = request.getParameter("ac");
 
                 
 %>			
@@ -62,8 +63,8 @@ function doKeyUp(event,row) {
 
 
 function doChange(event,row) {
-    alert(Number(document.getElementById("i"+row).value));
     if (isNaN(document.getElementById("i"+row).value)) {
+        document.getElementById("i"+row).value="";
         document.getElementById("i"+row).focus();
         alert("Ogiltigt antal");
     }
@@ -163,6 +164,36 @@ table td {
     </form>
         
 </div>
+        
+        
+                    <%
+
+if ("update".equals(ac)) {
+    
+%>
+<div>
+<%
+    String artnr;
+    Double antal;
+    StringBuilder sb = new StringBuilder();
+    sb.append("create temporary table on commit drop ");
+        for (int i=1; true ; i++ ) {
+            artnr = request.getParameter("artnr[" + i + "]");
+            if (artnr == null || i > 100000) break;
+            try { antal = Double.parseDouble(request.getParameter("antal[" + i + "]")); } catch (Exception e) { antal=null; }
+            if (antal != null) {
+                sb.append("update lager set ilager=?);");
+                sb.append("insert into lagerhand ...");
+                
+            }
+        }
+  
+%>
+</div>
+<%
+}
+
+%>        
 		
 		<h1 style="display: none"><sx-rubrik>Inventering Inmatning</sx-rubrik></h1>
 <%
@@ -210,6 +241,9 @@ if (inventId!=null) {
     <tr><td>Skapad</td><td><%= SXUtil.getFormatDate(datum)  %></td></tr>
     <tr><td>Beskrivning</td><td><%= SXUtil.toHtml(beskrivning)  %></td></tr>
 </table>
+<form method="post">
+    <input type=hidden" name="id" value="<%= inventId %>">
+    <input type=hidden" name="ac" value="update">
 	<table class="ivt">
 <tr class="underline">
     <th>Lagerplats</th><th>Art.nr</th><th>Benämning</th><th>I lager</th><th>Inventerat</th><th>Samfakt</th><th>Utskrivet</th><th>Enhet</th><th>Bestnr</th><th>Refnr</th><th>RSK</th><th>Enr</th>
@@ -231,7 +265,8 @@ if (inventId!=null) {
             %>
             <td class="right"><%= SXUtil.getFormatNumber(rs.getDouble("ilager"),decimaler) %></td>
  
-            <td><input type="number" class="i" id="i<%= rowCn %>" onkeydown="doKeyUp(event, <%= rowCn %>)" onchange="doChange(event, <%= rowCn %>)"></td>
+            <td><input name="antal[<%= rowCn %>]" class="i" id="i<%= rowCn %>" onkeydown="doKeyUp(event, <%= rowCn %>)" onchange="doChange(event, <%= rowCn %>)"></td>
+            <input type="hidden" name="artnr[<%= rowCn %>]" value="<%= rs.getString("artnr") %>" >
             
             <%
             decimaler=0;
@@ -256,7 +291,8 @@ if (inventId!=null) {
         </tr>	
 <% } %>
 	</table>
-        
+        <input type="submit" value="Spara ändrade priser">
+</form>        
 <% } %>
 	
 </div>				
