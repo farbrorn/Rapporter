@@ -52,10 +52,12 @@ function doKeyUp(event,row) {
         event.preventDefault();
         row++;
         document.getElementById("i"+row).focus();
+        document.getElementById("i"+row).select();
     } else if (key==38) { // Up
         event.preventDefault();
         row--;
         document.getElementById("i"+row).focus();
+        document.getElementById("i"+row).select();
     }/* else if (!((char >= 38 && char <= 57) || char==44 || char==46) ) { // mellan 0-99 komma(,) eller punkt(.)
        event.preventDefault();
     } */
@@ -113,6 +115,10 @@ table td {
 	color: red;
 }
 
+.i {
+    width: 5em;
+}
+
 .right {
 	text-align: right;
 }
@@ -168,36 +174,77 @@ table td {
         
                     <%
 
-if ("update".equals(ac)) {
+    boolean error=false;
+    int updateCn=0;
+if ("update".equals(ac) && inventId!=null) {
     
 %>
 <div>
 <%
     String artnr;
     Double antal;
-    StringBuilder sb = new StringBuilder();
-    sb.append("create temporary table on commit drop ");
+    
+   
+    q=
+"insert into lagerhand (artnr, lagernr, datum, tid, anvandare, handelse, gammaltilager, nyttilager, forandring) "
++" values (?, " + lagernr + " , current_date, current_time, ?, 'Invent', coalesce((select coalesce(ilager,0) from lager where artnr=? and lagernr=" + lagernr + "),0), ?, ?-coalesce((select coalesce(ilager,0) from lager where artnr=? and lagernr=" + lagernr + "),0)); "
+
++" insert into lager (artnr, lagernr, ilager, bestpunkt, maxlager, best, iorder, lagerplats, hindrafilialbest)  "
++" select ?," + lagernr + ", 0, 0, 0, 0,0, '', 0 where not exists (select 1 from lager where artnr=? and lagernr=" + lagernr + "); "
+
++" update lager set ilager = ? where artnr=? and lagernr=" + lagernr + "; ";
+
+ps=con.prepareStatement(q);
+
+    try {
         for (int i=1; true ; i++ ) {
-            artnr = request.getParameter("artnr[" + i + "]");
-            if (artnr == null || i > 100000) break;
-            try { antal = Double.parseDouble(request.getParameter("antal[" + i + "]")); } catch (Exception e) { antal=null; }
-            if (antal != null) {
-                sb.append("update lager set ilager=?);");
-                sb.append("insert into lagerhand ...");
-                
+                artnr = request.getParameter("artnr[" + i + "]");
+                if (artnr == null || i > 100000) break;
+                try { antal = Double.parseDouble(request.getParameter("antal[" + i + "]")); } catch (Exception e) { antal=null; }
+                if (antal != null) {
+                    ps.setString(1, artnr);
+                    ps.setString(2, user.getAnvandare());
+                    ps.setString(3, artnr);
+                    ps.setDouble(4, antal);
+                    ps.setDouble(5, antal);
+                    ps.setString(6, artnr);
+
+                    ps.setString(7, artnr);                   
+                    ps.setString(8, artnr);
+                    
+                    ps.setDouble(9, antal);
+                    ps.setString(10, artnr);
+                    
+                    ps.executeUpdate();
+                    updateCn++;
+
+                }
             }
-        }
+    } catch (Exception e) { 
+        error=true;
+        con.rollback();
+        out.print(e.getMessage() + e.toString());
+    } finally {
+        con.setAutoCommit(true);
+        ps.close();
+    }
   
-%>
-</div>
+if (error) { %>
+<h1>*Fel*</h1>
+Inget sparat. försök igen.
+    
+<% } else { %>
+<h2>Sparat!</h2>
+Uppdaterade artiklar: <%= updateCn %>
 <%
 }
-
-%>        
+%>
+</div>
+<% } %>        
 		
 		<h1 style="display: none"><sx-rubrik>Inventering Inmatning</sx-rubrik></h1>
 <%
-if (inventId!=null) { 
+if (inventId!=null && (ac==null || error)) { 
 		q = 
 "select "
 +" l.lagerplats as lagerplats, a.nummer as artnr, a.namn as namn , l.ilager as ilager, o.antal as antalsamfakt, o2.antal as antalutskrivet,   a.enhet as enhet, a.bestnr as bestnr, a.refnr as refnr, a.rsk as rsk, a.enummer as enummer"
@@ -229,11 +276,8 @@ if (inventId!=null) {
                 double antal;
 %>
 
-                <div>
-                    <form>
-                        
-                    </form>
-                </div>
+                
+                    
 <h2>Inventering</h2>
 <table >
     <tr><td>ID</td><td><%= inventId %></td></tr>
@@ -241,9 +285,9 @@ if (inventId!=null) {
     <tr><td>Skapad</td><td><%= SXUtil.getFormatDate(datum)  %></td></tr>
     <tr><td>Beskrivning</td><td><%= SXUtil.toHtml(beskrivning)  %></td></tr>
 </table>
+<b>Glöm inte att spara ändringarna när du är klar!</b>
 <form method="post">
-    <input type=hidden" name="id" value="<%= inventId %>">
-    <input type=hidden" name="ac" value="update">
+    <input type="hidden" name="ac" value="update">
 	<table class="ivt">
 <tr class="underline">
     <th>Lagerplats</th><th>Art.nr</th><th>Benämning</th><th>I lager</th><th>Inventerat</th><th>Samfakt</th><th>Utskrivet</th><th>Enhet</th><th>Bestnr</th><th>Refnr</th><th>RSK</th><th>Enr</th>
@@ -265,7 +309,11 @@ if (inventId!=null) {
             %>
             <td class="right"><%= SXUtil.getFormatNumber(rs.getDouble("ilager"),decimaler) %></td>
  
-            <td><input name="antal[<%= rowCn %>]" class="i" id="i<%= rowCn %>" onkeydown="doKeyUp(event, <%= rowCn %>)" onchange="doChange(event, <%= rowCn %>)"></td>
+<%
+            String v;
+            v= request.getParameter("antal[" + rowCn + "}");
+%>            
+            <td><input name="antal[<%= rowCn %>]" class="i" id="i<%= rowCn %>" onkeydown="doKeyUp(event, <%= rowCn %>)" onchange="doChange(event, <%= rowCn %>)" value="<%= v!=null ? v : "" %>"></td>
             <input type="hidden" name="artnr[<%= rowCn %>]" value="<%= rs.getString("artnr") %>" >
             
             <%
@@ -291,7 +339,7 @@ if (inventId!=null) {
         </tr>	
 <% } %>
 	</table>
-        <input type="submit" value="Spara ändrade priser">
+        <input type="submit" value="Spara ändrade lagersaldo">
 </form>        
 <% } %>
 	

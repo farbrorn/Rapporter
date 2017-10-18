@@ -129,9 +129,11 @@ table td {
         <br>
         Tillgängliga listor senaste 60 dagarna
         <table>
-            <tr><th>Lager</th><th>Id</th><th>Datum</th><th>Beskrivning</th><th>Utskriven</th></tr>
+            <tr><th>Lager</th><th>Id</th><th>Datum</th><th>Beskrivning</th><th>Utskriven</th><th></th></tr>
 <%   while (rs.next()) { %>       
-            <tr><td><%= rs.getString("lagernamn") %></td><td><a href="?id=<%= rs.getInt("id") %>"><%= rs.getInt("id") %></a></td><td><%= rs.getString("datum") %></td><td><%= SXUtil.toHtml(rs.getString("beskrivning")) %></td><td><%= SXUtil.toHtml(rs.getString("utskriftdat")) %></td></tr>
+            <tr><td><%= rs.getString("lagernamn") %></td><td><a href="?id=<%= rs.getInt("id") %>"><%= rs.getInt("id") %></a></td><td><%= rs.getString("datum") %></td><td><%= SXUtil.toHtml(rs.getString("beskrivning")) %></td><td><%= SXUtil.toHtml(rs.getString("utskriftdat")) %></td>
+                <td><a href="Inventering-inmatning.jsp?id=<%= rs.getInt("id") %>">Inmatning</a></td>
+            </tr>
 <% } %>
 </table>
 <div>Vid inmatning i faktx används följande sortering:  (select lagerplats from lager where artnr=nummer and lagernr=?),nummer 
