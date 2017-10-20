@@ -31,8 +31,9 @@
                 String ac = null;
 		
 		try { inventId = Integer.parseInt(request.getParameter("id")); } catch (Exception e) { }
+                Integer listaLagernr = user.getLagernr();
+		try { listaLagernr = Integer.parseInt(request.getParameter("listalagernr")); } catch (Exception e) { }
                 ac = request.getParameter("ac");
-
                 
 %>			
 
@@ -278,14 +279,33 @@ if (inventId!=null && (ac==null || error)) {
 
                 
                     
-<h2>Inventering</h2>
+<h2>Inventering lager <%= lagernr %></h2>
 <table >
     <tr><td>ID</td><td><%= inventId %></td></tr>
     <tr><td>Lager</td><td><%= lagernr %></td></tr>
     <tr><td>Skapad</td><td><%= SXUtil.getFormatDate(datum)  %></td></tr>
     <tr><td>Beskrivning</td><td><%= SXUtil.toHtml(beskrivning)  %></td></tr>
 </table>
-<b>Glöm inte att spara ändringarna när du är klar!</b>
+<div><ul>
+        <li>
+            Innan du skriver utlistan - kontrollera att alla inleveranser är gjorda och att alla ordrar är fakturerade (eller ligger på samfakt. Inga order får finnas oinslagna i systemet.
+        </li>
+        <li>
+            Utskriven lista inmatas samma dag för att uppgifterna inte ska hinna bli gamla.
+        </li>
+        <li>
+            Det antal som står i kolumnen "Samfak" avser artiklar som är utplockade från lagret men är ofakturerade.  
+        </li>
+        <li>
+            Det antal som står i kolumnen "Utskrivet" avser artiklar som ligger utskrivet för plock. Varje sådan artikel måste kontrolelras om den är ploclkad eller inte. Om den är plockad ska antalet adderas till invnenteringen.
+        </li>
+        <li>
+            Det antal som står som "Samfakt" <b>vid inmatningl</b> skall läggas till inventerat antal innan det matas in. (Det som står på den utskrivna listan är endast vägledande.)
+        </li>
+    </ul>
+</div>
+
+<b>Glöm inte att spara ändringarna när du är klar!</b><br>Du behöver bara fylla i antal som avviker från systemets lagersaldo.
 <form method="post">
     <input type="hidden" name="ac" value="update">
 	<table class="ivt">
