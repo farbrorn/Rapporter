@@ -18,7 +18,13 @@
 
 
 <%
-		User user=null;
+                
+		ResultSet rs;
+		PreparedStatement ps;
+//                Statement st;
+		String q;
+
+                User user=null;
 		Connection con=null;
                 
 		try { user  = (User)request.getSession().getAttribute(LoginServiceConstants.REQUEST_PARAMETER_SESSION_USER); } catch (Exception e) {}
@@ -30,11 +36,36 @@
                 Integer inventId = null;
 		
 		try { inventId = Integer.parseInt(request.getParameter("id")); } catch (Exception e) { }
+                Integer listaLagernr = user.getLagernr();
+		try { listaLagernr = Integer.parseInt(request.getParameter("listalagernr")); } catch (Exception e) { }
+                if (listaLagernr==null) listaLagernr=0;
+           
                 
                 boolean markeraUtskriven = false;
+                Integer lagernr = null;
+                java.sql.Date datum = null;
+                String beskrivning = null;
 
                 if (inventId!=null) {
                     if (request.getParameter("id").equals(request.getParameter("markerautskriven"))) markeraUtskriven = true;
+		q = 
+                "select * "
+                +" from artinventlist1 "
+                +" where id=? " ;
+
+		ps = con.prepareStatement(q);
+		ps.setInt(1,inventId );
+		
+		rs = ps.executeQuery();
+                if (rs.next()) {
+                    lagernr = rs.getInt("lagernr");
+                    datum = rs.getDate("datum");
+                    beskrivning  = rs.getString("beskrivning");
+                    listaLagernr = lagernr;
+                } else {
+//                    inventId = null; 
+                }
+                
                 }
 
                 
@@ -100,11 +131,6 @@ table td {
 	<body>
 		<div class="maindiv">
                     <%
-		Statement st = con.createStatement();
-                
-		ResultSet rs;
-		PreparedStatement ps;
-		String q;
                 
                 if (markeraUtskriven) {
                     q="update artinventlist1 set utskriftdat=current_date where id=?";
@@ -116,7 +142,7 @@ table td {
 		q = 
 "select ai.*, l.bnamn as lagernamn "
 +" from artinventlist1 ai join lagerid l on l.lagernr=ai.lagernr "
-+" where datum >= current_date-60 order by ai.lagernr, ai.id desc " ;
++" where datum >= current_date-60 and l.lagernr=" + listaLagernr + " order by ai.lagernr, ai.id desc " ;
 		ps = con.prepareStatement(q);
 		rs = ps.executeQuery();
 
@@ -124,27 +150,36 @@ table td {
 <div class="noprint">
     <form>
         ID:<input type="text" name="id" value="<%= SXUtil.noNull(inventId) %>">
+        Begränsa urvalslistan till Lagernr :<input type="text" name="listalagernr" value="<%= listaLagernr %>">
         <input type="submit">
     </form>
         <br>
         Tillgängliga listor senaste 60 dagarna
         <table>
-            <tr><th>Lager</th><th>Id</th><th>Datum</th><th>Beskrivning</th><th>Utskriven</th></tr>
+            <tr><th>Lager</th><th>Id</th><th>Datum</th><th>Beskrivning</th><th>Utskriven</th><th></th></tr>
 <%   while (rs.next()) { %>       
-            <tr><td><%= rs.getString("lagernamn") %></td><td><a href="?id=<%= rs.getInt("id") %>"><%= rs.getInt("id") %></a></td><td><%= rs.getString("datum") %></td><td><%= SXUtil.toHtml(rs.getString("beskrivning")) %></td><td><%= SXUtil.toHtml(rs.getString("utskriftdat")) %></td></tr>
+            <tr><td><%= rs.getString("lagernamn") %></td><td><a href="?id=<%= rs.getInt("id") %>"><%= rs.getInt("id") %></a></td><td><%= rs.getString("datum") %></td><td><%= SXUtil.toHtml(rs.getString("beskrivning")) %></td><td><%= SXUtil.toHtml(rs.getString("utskriftdat")) %></td>
+                <td><a href="Inventering-inmatning.jsp?id=<%= rs.getInt("id") %>">Inmatning</a></td>
+            </tr>
 <% } %>
 </table>
-<div>Vid inmatning i faktx används följande sortering:  (select lagerplats from lager where artnr=nummer and lagernr=?),nummer 
-    <br>Som filter används:  A.NUMMER IN (SELECT ARTNR FROM ARTINVENTLIST2 WHERE ID=?)
-    <br>OBS! Byt ut ? i lagernu=? mot siffran för det lager du inventerar - t.ex. 0 för Grums, 1 för Åmål. 3 för Arvika, 4 för Sunne, 10 för Borlänge, 12 för Skara<br>
-    "ID=?" skall ? bytas mot det id-nummer som står på inventeringslistan.
-    <br>
-    Innan du skriver utlistan - kontrollera att alla inleveranser är gjorda och att alla ordrar är fakturerade (eller ligger på samfakt. Inga order får finnas oinslagna i systemet.
-    <br>
-    <br>Varje utskriven lista ska registreras samma dag.
-    <br>Det antal som står i kolumnen "Samfak" avser artiklar som är utplockade från lagret men är ofakturerade. Antalet skall adderas till inventeringen för att det ska bli rätt.
-    <br>Det antal som står i kolumnen "Utskrivet" avser artiklar som ligger utskrivet för plock. Varje sådan artikel måste kontrolelras om den är ploclkad eller inte. Om den är plockad ska antalet adderas till invnenteringen.
-    <br>
+<div><ul>
+        <li>
+            Innan du skriver utlistan - kontrollera att alla inleveranser är gjorda och att alla ordrar är fakturerade (eller ligger på samfakt. Inga order får finnas oinslagna i systemet.
+        </li>
+        <li>
+            Utskriven lista inmatas samma dag för att uppgifterna inte ska hinna bli gamla.
+        </li>
+        <li>
+            Det antal som står i kolumnen "Samfak" avser artiklar som är utplockade från lagret men är ofakturerade.  
+        </li>
+        <li>
+            Det antal som står i kolumnen "Utskrivet" avser artiklar som ligger utskrivet för plock. Varje sådan artikel måste kontrolelras om den är ploclkad eller inte. Om den är plockad ska antalet adderas till invnenteringen.
+        </li>
+        <li>
+            Det antal som står som "Samfakt" <b>vid inmatningl</b> skall läggas till inventerat antal innan det matas in. (Det som står på den utskrivna listan är endast vägledande.)
+        </li>
+    </ul>
 </div>
         <% if (inventId!=null) { %><br><a href="?id=<%= inventId %>&markerautskriven=<%= inventId %>">Markera visad lista (<%= inventId %>) som utskriven</a> <% } %>
 </div>
@@ -152,26 +187,6 @@ table td {
 		<h1 style="display: none"><sx-rubrik>Inventeringslista</sx-rubrik></h1>
 <%
 if (inventId!=null) { 
-                
-		q = 
-"select * "
-+" from artinventlist1 "
-+" where id=? " ;
-
-		ps = con.prepareStatement(q);
-		ps.setInt(1,inventId );
-		
-                Integer lagernr = null;
-                java.sql.Date datum = null;
-                String beskrivning = null;
-		rs = ps.executeQuery();
-                if (rs.next()) {
-                    lagernr = rs.getInt("lagernr");
-                    datum = rs.getDate("datum");
-                    beskrivning  = rs.getString("beskrivning");
-                } else {
-                    inventId = null; 
-                }
                 
                 
                 
