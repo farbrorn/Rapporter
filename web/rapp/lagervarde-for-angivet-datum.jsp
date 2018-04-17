@@ -42,6 +42,7 @@
 +" from lager l left outer join lagerhand lh on lh.artnr=l.artnr and lh.lagernr=l.lagernr and lh.datum > ? "
 +" group by l.lagernr, l.artnr "
 +" ) ll on ll.lagernr=l.lagernr and ll.artnr=l.artnr"
++" WHERE a.nummer not in ('RV1450', 'RV1451') and a.nummer > '010000' and a.nummer < 'Y' "                
 +" group by l.lagernr "
 +" order by l.lagernr ";
 
