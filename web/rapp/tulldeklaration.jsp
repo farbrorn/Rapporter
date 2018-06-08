@@ -34,7 +34,7 @@
                 Integer antalKolli=0;
                 try { antalKolli=Integer.parseInt(request.getParameter("kolli")); } catch (Exception e) {}
                 
-                
+                String valuta="Value";
 %>			
 
 <%@page contentType="text/html" pageEncoding="ISO-8859-1"%>
@@ -88,6 +88,8 @@ h2 {
     stmF1 = con.createStatement();
     ResultSet rsF1 = stmF1.executeQuery("select f1.*, k.regnr, FU.NAMN AS fu_namn, FU.ADR1 as fu_adr1, FU.ADR2 as fu_adr2, FU.ADR3 as fu_adr3 , fu.regnr as fu_regnr from faktura1 f1 left outer join kund k on k.nummer=f1.kundnr join fuppg fu on 1=1 where f1.faktnr=" + faktnr);
     if (rsF1.next()) {
+        if (rsF1.getString("fu_regnr")!=null && rsF1.getString("fu_regnr").startsWith("SE")) valuta = "SEK";
+        else if (rsF1.getString("fu_regnr")!=null && rsF1.getString("fu_regnr").startsWith("NO")) valuta = "NOK";
 %>
 <div id="invoice" style="width: 54em; padding: 1em; margin:0.5em; border: 1px solid grey; font-size: 12px">                
 <div id="invoice-header" style="width: 100%">
@@ -138,7 +140,7 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
 
 <%         ResultSet rs = stm.executeQuery(q); %>
 <table style="margin-top: 2em; width: 100%">
-    <tr><th style="width: 10em">Itemcode</th><th style="width: 26em">Item</th><th style="width: 7em">CN8</th><th  style="text-align: right;">Value</th></tr>
+    <tr><th style="width: 10em">Itemcode</th><th style="width: 26em">Item</th><th style="width: 7em">CN8</th><th  style="text-align: right;"><%= valuta %></th></tr>
 
 <%        
     while (rs.next()) {
@@ -154,7 +156,7 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
     rs = stm.executeQuery(q2);
 %>
 <table style="margin-top: 2em">
-    <tr><th>CN8</th><th style="text-align: right;">Value</th></tr>
+    <tr><th>CN8</th><th style="text-align: right;"><%= valuta %></th></tr>
     
 <%        
     while (rs.next()) {
@@ -177,6 +179,7 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
             <td style="width: 50%"></td>
             <td style="width: 50%;">
         <table style="margin-left: auto; margin-right:0px">
+            <tr><td></td><td style="text-align: right"><%= valuta %></td></tr>
             <tr>
                 <td>Total net:</td><td style="text-align: right"><%= SXUtil.getFormatNumber(rsF1.getDouble("t_netto")) %></td>
             </tr><tr>
