@@ -139,12 +139,6 @@ table td {
                     
                     if (ps.executeUpdate() != 1) { %> <h1>*FEL* Kan inte markera som utskriven </h1> <% }
                 }
-		q = 
-"select ai.*, l.bnamn as lagernamn "
-+" from artinventlist1 ai join lagerid l on l.lagernr=ai.lagernr "
-+" where datum >= current_date-60 and l.lagernr=" + listaLagernr + " order by ai.lagernr, ai.id desc " ;
-		ps = con.prepareStatement(q);
-		rs = ps.executeQuery();
 
                 %>                    
 <div class="noprint">
@@ -153,8 +147,31 @@ table td {
         Begränsa urvalslistan till Lagernr :<input type="text" name="listalagernr" value="<%= listaLagernr %>">
         <input type="submit">
     </form>
+<%
+q="select count(*) as antal from artinventlist1 i1 join artinventlist2 i2 on i1.id=i2.id and utskriftdat > current_date-365 and i1.lagernr="+listaLagernr;
+rs = con.createStatement().executeQuery(q);
+int antalInvent=0;
+if (rs.next()) antalInvent = rs.getInt(1);
+q="select count(*) as antal from lager where (ilager <> 0 or maxlager <> 0 ) and lagernr="+listaLagernr;
+rs = con.createStatement().executeQuery(q);
+int antalAttInvent=0;
+if (rs.next()) antalAttInvent = rs.getInt(1);
+%>    
+<div>
+Under senaste året har på lager <%= listaLagernr%> inventerats <%= antalInvent %> av <%= antalAttInvent %> artiklar.
+</div>    
+        
         <br>
-        Tillgängliga listor senaste 60 dagarna
+        Tillgängliga listor senaste 90 dagarna
+        <%
+		q = 
+"select ai.*, l.bnamn as lagernamn "
++" from artinventlist1 ai join lagerid l on l.lagernr=ai.lagernr "
++" where datum >= current_date-90 and l.lagernr=" + listaLagernr + " order by ai.lagernr, ai.id desc " ;
+		ps = con.prepareStatement(q);
+		rs = ps.executeQuery();
+            
+            %>
         <table>
             <tr><th>Lager</th><th>Id</th><th>Datum</th><th>Beskrivning</th><th>Utskriven</th><th></th></tr>
 <%   while (rs.next()) { %>       

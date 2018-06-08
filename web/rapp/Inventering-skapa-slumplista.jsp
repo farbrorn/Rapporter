@@ -95,6 +95,19 @@ table {
 </form>
 
 <%
+q="select count(*) as antal from artinventlist1 i1 join artinventlist2 i2 on i1.id=i2.id and utskriftdat > current_date-365 and i1.lagernr="+lagernr;
+rs = con.createStatement().executeQuery(q);
+int antalInvent=0;
+if (rs.next()) antalInvent = rs.getInt(1);
+q="select count(*) as antal from lager where (ilager <> 0 or maxlager <> 0 ) and lagernr="+lagernr;
+rs = con.createStatement().executeQuery(q);
+int antalAttInvent=0;
+if (rs.next()) antalAttInvent = rs.getInt(1);
+%>    
+<div>
+Under senaste året har inventerats <%= antalInvent %> av <%= antalAttInvent %>.
+</div>    
+<%
 if (lagernr!=null && "skapa".equals(ac) && antalArtiklar!=null) { 
 %>
 
