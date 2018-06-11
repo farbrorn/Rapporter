@@ -83,7 +83,7 @@
  +" where f2.artnr not in ('*BONUS*','*RÄNTA*') and f1.kundnr=? and f1.datum between ? and ? and f2.lev<>0 " + levnrFilter
 +" order by f2.artnr, f2.faktnr desc";
     } else {
-    q= "select count(*) as antalkop, f2.artnr, coalesce(a.namn,f2.namn) as artnamn, sum(f2.lev) as lev, f2.enh, sum(f2.pris*(1-f2.rab/100)*f2.lev)/sum(f2.lev) as pris, sum(f2.lev*(f2.pris*(1-f2.rab/100)-f2.netto-(f2.pris*(1-f2.rab/100)*case when f1.bonus <> 0 then fu.bonusproc1/100 else 0 end)))/sum(f2.lev) as tb "
+    q= "select count(*) as antalkop, f2.artnr, coalesce(a.namn,f2.namn) as artnamn, sum(f2.lev) as lev, f2.enh, case when sum(f2.lev)<>0 then sum(f2.pris*(1-f2.rab/100)*f2.lev)/sum(f2.lev) else 0 end as pris, case when sum(f2.lev)<>0 then sum(f2.lev*(f2.pris*(1-f2.rab/100)-f2.netto-(f2.pris*(1-f2.rab/100)*case when f1.bonus <> 0 then fu.bonusproc1/100 else 0 end)))/sum(f2.lev) else 0 end as tb "
 +" from " + dbuser + ".faktura1 f1 join " + dbuser + ".faktura2 f2 on f1.faktnr=f2.faktnr left outer join " + dbuser + ".artikel a on a.nummer=f2.artnr left outer join " + dbuser + ".utlev1 u1 on u1.ordernr=f2.ordernr join " + dbuser + ".fuppg fu on 1=1 "
 +" where f2.artnr not in ('*BONUS*','*RÄNTA*') and f1.kundnr=? and f1.datum between ? and ? and f2.lev<>0 " + levnrFilter
 +" group by f2.artnr, f2.enh, coalesce(a.namn,f2.namn) "
