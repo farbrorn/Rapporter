@@ -34,6 +34,16 @@
                 Integer antalKolli=0;
                 try { antalKolli=Integer.parseInt(request.getParameter("kolli")); } catch (Exception e) {}
                 
+                boolean saljexas=("true".equals(request.getParameter("saljexas")));
+                boolean skrivEUUrsprung=("true".equals(request.getParameter("skriveuursprung")));
+                
+                String prefix = saljexas ? "sxasfakt." : "sxfakt.";
+                
+                String levAdr1 = request.getParameter("levadr1");
+                String levAdr2 = request.getParameter("levadr2");
+                String levAdr3 = request.getParameter("levadr3");
+                
+                
                 String valuta="Value";
 %>			
 
@@ -86,7 +96,8 @@ h2 {
     Statement stmF1;
     stm = con.createStatement();
     stmF1 = con.createStatement();
-    ResultSet rsF1 = stmF1.executeQuery("select f1.*, k.regnr, FU.NAMN AS fu_namn, FU.ADR1 as fu_adr1, FU.ADR2 as fu_adr2, FU.ADR3 as fu_adr3 , fu.regnr as fu_regnr from faktura1 f1 left outer join kund k on k.nummer=f1.kundnr join fuppg fu on 1=1 where f1.faktnr=" + faktnr);
+    ResultSet rsF1 = stmF1.executeQuery("select f1.*, k.regnr, FU.NAMN AS fu_namn, FU.ADR1 as fu_adr1, FU.ADR2 as fu_adr2, FU.ADR3 as fu_adr3 , fu.regnr as fu_regnr from " +
+         prefix + "faktura1 f1 left outer join " + prefix + "kund k on k.nummer=f1.kundnr join " + prefix + "fuppg fu on 1=1 where f1.faktnr=" + faktnr);
     if (rsF1.next()) {
         if (rsF1.getString("fu_regnr")!=null && rsF1.getString("fu_regnr").startsWith("SE")) valuta = "SEK";
         else if (rsF1.getString("fu_regnr")!=null && rsF1.getString("fu_regnr").startsWith("NO")) valuta = "NOK";
@@ -123,6 +134,16 @@ h2 {
                 VAT: <%= SXUtil.toHtml(rsF1.getString("regnr")) %><br>
             </td>
         </tr>
+        <tr>
+            <td style="width: 50%"></td>
+            <td style="width: 50%">
+                <br><b>Delivery address</b><br>
+                <%= SXUtil.toHtml(SXUtil.isEmpty(levAdr1) ? rsF1.getString("levadr1") : levAdr1) %><br>
+                <%= SXUtil.toHtml(SXUtil.isEmpty(levAdr1) ? rsF1.getString("levadr2") : levAdr2) %><br>
+                <%= SXUtil.toHtml(SXUtil.isEmpty(levAdr1) ? rsF1.getString("levadr3") : levAdr3) %><br>
+            </td>
+            
+        </tr>
     </table>
 
 
@@ -131,7 +152,7 @@ h2 {
 <%
 
 String q = "select f2.artnr, f2.namn, f2.summa, coalesce(case when cn8='' then null else cn8 end, 'x') as cn8, a.vikt*f2.lev as vikt "
-+ " from faktura2 f2 left outer join artikel a on a.nummer=f2.artnr "
++ " from " + prefix + "faktura2 f2 left outer join " + prefix + "artikel a on a.nummer=f2.artnr "
 +" where f2.faktnr= " + faktnr + " and f2.lev <> 0 order by cn8, artnr ";
 
 String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + " ) f group by cn8 order by cn8";
@@ -150,6 +171,20 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
     }
 %>
 </table>
+
+
+
+
+
+<% if (skrivEUUrsprung) { %>
+<div>
+    <br>
+    <b>Goods are of EU origin unless otherwise specified.</b>
+</div>
+<% } %>
+
+
+
 
 
 <%
@@ -206,9 +241,16 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
 		<h1 style="visibility: hidden"><sx-rubrik>Tullfaktura från faktura</sx-rubrik></h1>
 
                 <form>
-                    Fakturanr: <input name="faktnr" value="<%= SXUtil.noNull(faktnr) %>">
-                    Antal kolli: <input name="kolli" value="<%= SXUtil.noNull(antalKolli) %>">
-                    Total vikt: <input name="vikt" value="<%= SXUtil.noNull(totalVikt) %>">
+                    Fakturanr: <input name="faktnr" value="<%= SXUtil.noNull(faktnr) %>"><br>
+                    Antal kolli: <input name="kolli" value="<%= SXUtil.noNull(antalKolli) %>"><br>
+                    Total vikt: <input name="vikt" value="<%= SXUtil.noNull(totalVikt) %>"><br>
+                    Faktura från Saljex AS <input type="checkbox" name="saljexas" value="true" <%= saljexas ? "checked" : "" %>><br>
+                    Skriv intyg om EU-ursprung <input type="checkbox" name="skriveuursprung" value="true" <%= skrivEUUrsprung ? "checked" : "" %>><br>
+                    Leveransadress (om annan än på fakturan):<br>
+                    <input  name="levadr1" value="<%= SXUtil.toHtml(levAdr1) %>"><br>
+                    <input  name="levadr2" value="<%= SXUtil.toHtml(levAdr2) %>"><br>
+                    <input  name="levadr3" value="<%= SXUtil.toHtml(levAdr3) %>"><br>
+                    
                     <input type="submit">
                 </form>
 
