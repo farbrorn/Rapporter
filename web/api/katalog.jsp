@@ -41,6 +41,7 @@
 
 		String kompaktvy = request.getParameter("kompaktvy");
 		
+                boolean hidePrice = "true".equals(request.getParameter("hideprice"));
 
 			
 		if (SXUtil.isEmpty(frontKontaktNamn)) {
@@ -411,6 +412,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 							<table>
 								<thead>
 									<tr><th class="s_artnr left">Artikel</th><th class="s_typ left">Typ</th>
+                                                                            <% if(!hidePrice) { %>
 										<th class="s_pris right">
 											<%= !rabatt.equals(0.0) || avtalsprisKundnr != null ? "Netto " + (valuta != null ? valuta : "") : "Pris " + (valuta != null ? valuta : "") %>
 										</th>
@@ -418,6 +420,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 											<th class="s_pris right">Mängdpris</th> 
 											<th class="s_antal left">Antal</th>
 										<% } %>
+                                                                            <% } %>
 										<th class="s_enh left">Enhet</th>
 										<% if (!VY_Kompakt.equals(kompaktvy)) { %> 
 											<th class="s_grupp">Grupp</th>
@@ -431,6 +434,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 									<tr>
 										<td><%= Util.toHtml(artikel.getArtnr()) %></td>
 										<td><%= Util.toHtml(artikel.getKatalogtext()) %></td>
+                                                                            <% if(!hidePrice) { %>
 										<td class="right"><% 
 														prisetArDagspris = false;
 														if (artikel.getPrisgiltighetstid() == null || artikel.getPrisgiltighetstid() < 180) {
@@ -453,6 +457,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 												<%	} 	%> 											
 											</td>
 										<% } %>
+                                                                            <% } %>
 										
 										<td><%= Util.toHtml(artikel.getEnhet()) %></td>
 										

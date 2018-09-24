@@ -41,6 +41,8 @@
 		String frontWWW = request.getParameter("frontwww");
 
 		String kompaktvy = request.getParameter("kompaktvy");
+                
+                boolean hidePrice = "true".equals(request.getParameter("hideprice"));
 		
 
 			
@@ -495,7 +497,9 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 						<div class="s s_artnr s_rubrik left">Artikel</div>
 						<div class="s s_typ s_rubrik left">Typ</div>
 						<div class="s s_pris s_rubrik right">
-							<%= !rabatt.equals(0.0) || avtalsprisKundnr != null ? "Netto " + (valuta != null ? valuta : "") : "Pris " + (valuta != null ? valuta : "") %>
+							<% if (hidePrice) { %>
+                                                            <%= !rabatt.equals(0.0) || avtalsprisKundnr != null ? "Netto " + (valuta != null ? valuta : "") : "Pris " + (valuta != null ? valuta : "") %>
+                                                        <% } %>
 						</div>
 						<div class="s s_enh s_rubrik left"></div>
 						<div class="s s_grupp s_rubrik left"></div>
@@ -521,7 +525,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 										pris = artikel.getPris() * minSaljpack;
 										if (pris >= 100) pris = java.lang.Math.ceil(pris);
 									}
-                                                                        if (artikel.isPrisOlder(prisdagarfilter) && (prisdagarbeloppfilter==null || prisdagarbeloppfilter < pris)) {
+                                                                        if (hidePrice || ( artikel.isPrisOlder(prisdagarfilter) && (prisdagarbeloppfilter==null || prisdagarbeloppfilter < pris))) {
                                                                             
                                                                         } else {
                                                                             if (pris > 0.0 ) out.print(Util.getFormatPris(pris * ("NTO".equals(artikel.getRabkod()) ? 1.0 : 1-rabatt)));														
