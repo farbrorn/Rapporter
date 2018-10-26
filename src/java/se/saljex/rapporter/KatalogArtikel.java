@@ -25,6 +25,7 @@ public class KatalogArtikel {
 		private Double antalStaf2;
 		private Double forpackning;
 		private Double minSaljpack;
+		private Double kopPack;
 		private Integer fraktvillkor;
 		private java.sql.Date utgattdatum;
 		private Double maxlager;
@@ -131,6 +132,14 @@ public class KatalogArtikel {
 	public Double getAntalStaf2() {
 		return antalStaf2;
 	}
+
+    public Double getKopPack() {
+        return kopPack;
+    }
+
+    public void setKopPack(Double kopPack) {
+        this.kopPack = kopPack;
+    }
 
 	public void setAntalStaf2(Double antalStaf2) {
 		this.antalStaf2 = antalStaf2;

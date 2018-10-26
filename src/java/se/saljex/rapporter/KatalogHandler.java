@@ -105,7 +105,7 @@ public class KatalogHandler {
 		" a.rabkod, a.kod1, a.prisdatum, a.vikt, a.volym, a.forpack, a.kop_pack, a.inprisny, 0, 0, " +
 		" a.utprisnydat, a.rsk, a.enummer, a.fraktvillkor, a.dagspris, a.utgattdatum,  a.minsaljpack, a.katnamn, a.bildartnr , l.maxlager, a.refnr, a.bestnr, prisgiltighetstid, " +
 	   " COALESCE(kun.basrab,0) as kundbasrab, COALESCE(r2.rab, 0::real) AS gruppbasrab, COALESCE(r.rab, 0::real) AS undergrupprab, COALESCE(n.pris, 0::real) AS nettopris , a.rabkod, " +
-                " a.inpdat as inpdat, a.prisdatum as prisdatum "         +
+                " a.inpdat as inpdat, a.prisdatum as prisdatum , a.kop_pack as kop_pack"         +
 		" from artgrp g " +
 		" left outer join artgrplank gl on gl.grpid = g.grpid " +
 		" left outer join artklase k on k.klasid=gl.klasid " + klaseOn + " " +
@@ -256,7 +256,7 @@ public class KatalogHandler {
 				artikel.setPrisgiltighetstid(rs.getInt(43));
                                 artikel.setInpdat(rs.getDate("inpdat"));
                                 artikel.setPrisdatum(rs.getDate("prisdatum"));
-				
+				artikel.setKopPack(rs.getDouble("kop_pack"));
 				if (avtalsprisKundnr!=null) {
 					double rab=0.0;
 

@@ -189,7 +189,8 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 		<title>Säljex <%= Util.toHtml(huvudRubrik) %> <%= Util.toHtml(rubrik) %></title>
 <style type="text/css">
-
+    body { width: 650px; }
+    
 @media print {
 .kat-main				{ font-size: 16px; }
 }
@@ -209,7 +210,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 @media print {
 .kat-frontpics				{ margin-top: 120px; min-height: <%= picAreaHeight %>px; max-height: <%= picAreaHeight %>px; vertical-align: middle; }
 .kat-frontpic				{ margin: 40px; }
-.kat-frontfot				{ margin-top: 0px; font-size: 30px; border: solid black; border-radius: 10px; padding: 10px;}
+.kat-frontfot				{ margin-top: 0px; font-size: 14px; border: solid black; border-radius: 10px; padding: 10px;}
 .kat-frontfot-www				{ font-size: 120%; font-weight: bold; text-align: center; marign-top: 40px; }
 .kat-frontfot-rubrik			{ font-weight: bold; }
 .kat-frontfot-hrubrik			{ font-size: 120%; text-decoration: underline; font-weight: bolder; text-align: center;}
@@ -254,9 +255,9 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 .kat-grupp-l2 h2		{ font-weight: bolder; font-size: 120%; margin: 0px 0px 0px 0px;}
 
 .kat-klase				{ margin: 0px 0px 2em 0px;  page-break-inside: avoid; }
-.kat-klase h2			{ font-weight: bold; font-size: 100%;  margin: 0px 0px 0px 0px; padding-left: 120px; width: 60em;}
-.kat-klase p			{ font-size: 100%; margin: 0px 0px 0px 0px; padding-left: 120px; width: 60em;}
-.kat-klase table 		{ padding-left: 120px; width: 60em;}
+.kat-klase h2			{ font-weight: bold; font-size: 100%;  margin: 0px 0px 0px 0px; padding-left: 120px; }
+.kat-klase p			{ font-size: 100%; margin: 0px 0px 4px 0px; padding-left: 120px; }
+.kat-klase table 		{ padding-left: 120px;  }
 
 
 .right					{text-align: right; }
@@ -271,11 +272,12 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 .s5, .n5						{ width: 4em; }
 .s_forp						{ width: 6em; }
 .s_artnr						{ width: 7em; }
-.s_typ						{ width: 14em; }
+.s_typ						{ width: 24em; }
 .s_pris						{ width: 6em; }
 .s_antal						{ width: 4em; }
 .s_enh						{ width: 3em; }
 .s_grupp						{ width: 4em; }
+.s_not						{ width: 1em; }
 
 .fint					{ font-weight: lighter; font-size: 80%;}
 .extrafint			{ font-weight: lighter; font-size: 60%;}
@@ -426,7 +428,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 											<th class="s_grupp">Grupp</th>
 											<th class="s_forp left">Förpack.</th>
 										<% } %>
-										<th class="left"></th>
+										<th class="s_not left"></th>
 									</tr>
 								</thead>
 								<tbody>
@@ -465,15 +467,20 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 											<td><%= Util.toHtml(artikel.getRabkod()) %><%= Util.isEmpty(artikel.getKod1()) ? "" : "<span class=\"extrafint\">-"+artikel.getKod1()+"</span>"  %></td>
 											<% String fp="";
 												double minSaljPack = artikel.getMinSaljpack();
+                                                                                                double forpack=artikel.getForpackning();
+                                                                                                double koppack = SXUtil.noNull(artikel.getKopPack()); 
 												if(minSaljPack < 0.01) minSaljPack=1;
+                                                                                                if (minSaljPack > forpack) forpack = minSaljPack;
+                                                                                                if (koppack > forpack) forpack = koppack;
+                                                                                                
 												long iPart;
 												double fPart;
 												iPart = (long) minSaljPack;
 												fPart = minSaljPack - iPart;
 												if (fPart != 0) fp = Util.getFormatNumber(minSaljPack,2); else fp = Util.getFormatNumber(minSaljPack,0);
-												if (artikel.getForpackning() > 0 && artikel.getForpackning() > minSaljPack ) {
+												if (artikel.getForpackning() > 0 && forpack > minSaljPack ) {
 													if (fp.length()>0) fp = fp + "/";
-													if (fPart != 0) fp = fp + Util.getFormatNumber(artikel.getForpackning(),2); else fp = fp + Util.getFormatNumber(artikel.getForpackning(),0);
+													if (fPart != 0) fp = fp + Util.getFormatNumber(forpack,2); else fp = fp + Util.getFormatNumber(forpack,0);
 												}
 											%>
 											<td><%= fp %></td>
@@ -506,7 +513,7 @@ a:link, a:active, a:visited, a:hover { color: black; text-decoration: none;  }
 												}
 											}
 										%>
-										<td class="fint"><%= Util.toHtml(fp) %></td>
+										<td class="extrafint"><%= Util.toHtml(fp) %></td>
 									</tr>
 									<% if((printBestnr && !Util.isEmpty(artikel.getBestnr())) || (printEnr && !Util.isEmpty(artikel.getEnr())) || (printRefnr && !Util.isEmpty(artikel.getRefnr())  ) || (printRsk && !Util.isEmpty(artikel.getRsk()) )) {%>
 									<tr>
