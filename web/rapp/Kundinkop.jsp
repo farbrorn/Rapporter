@@ -33,12 +33,15 @@
         Date tiDat;
         String dbuser = "sxfakt";
         try {
-            frDat = (java.sql.Date)dateFormatter.parse(request.getParameter("frdat"));
+//            frDat = (java.sql.Date)dateFormatter.parse(request.getParameter("frdat"));
+            frDat = new java.sql.Date(dateFormatter.parse(request.getParameter("frdat")).getTime());
+            
         } catch (Exception e) { frDat=new java.sql.Date(SXUtil.addDate(new java.util.Date(),-365).getTime()); }
         
         
         try {
-            tiDat = (java.sql.Date)dateFormatter.parse(request.getParameter("tidat"));
+//            tiDat = (java.sql.Date)dateFormatter.parse(request.getParameter("tidat"));
+            tiDat = new java.sql.Date(dateFormatter.parse(request.getParameter("tidat")).getTime());
         } catch (Exception e) { tiDat=new java.sql.Date(new java.util.Date().getTime()); }
 
         String land = request.getParameter("land");
